@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title> Jogo </title>
+		<link rel="stylesheet" href="public/stylejogo.css">
+		<script src="spritejogo.js"></script>
+
+	</head>
+	
+	<body>
+		<header>
+			
+				<nav>
+					<ul>
+						<li><a href="ProjetoHTML.html"><img src="images/logologin/loginlogo.png" alt="submit" widht="100px" height="50px"></a></li>
+						<li><a href="Tutorial.html"><img src="images/logologin/tutoriallogo.png" alt="submit" widht="100px" height="50px"></a></li>
+						<li><a href="#"></a></li>
+							<input type="image" src="images/logologin/jogologo.png" alt="submit" widht="100px" height="50px">
+						<li><a href="Especificacoes.html"><img src="images/logologin/especificacoes.png" alt="submit" widht="100px" height="60px"></a></li>
+					</ul>
+				</nav>
+		</header>
+	<script>
+	
+	//----------------------------Variáveis----------------------------------------------------------------------------
+	
+	var canvas;
+	var ctx;
+	var altura;
+	var largura;
+	var frames = 0;
+	var maximopulos = 3;
+	var velocidade = 6;
+	var situacaoatual;
+	var img;
+	
+	//----------------------------Situações de jogo---------------------------------------------------------------------
+	
+	situacao = {
+		jogar: 0,
+		jogando: 1,
+		perdeu: 2
+	},
+	
+	//----------------------------Especificações/variáveis do chão-------------------------------------------------------
+	
+	ground = {
+	y: 550,
+	altura: 50,
+	cor: "#392613",
+	
+	desenha: function() {
+		ctx.fillStyle = this.cor;
+		ctx.fillRect(0, this.y, largura, this.altura);
+		}
+	},
+	
+	//----------------------------Especificações/variáveis do personagem--------------------------------------------------
+	
+	personagem = {
+	x: 50,
+	y: 50,
+	altura: spritePersonagem.altura,
+	largura: spritePersonagem.largura,
+	cor: "#ff6600",
+	gravidade: 1.6,
+	velocidade: 0,
+	forcapulo: 25,
+	quantidadepulos: 0,
+	
+	//----------------------------Aplicação da gravidade--------------------------------------------------------------------
+	
+	atualiza: function() {
+		this.velocidade += this.gravidade;
+		this.y += this.velocidade;
+		
+		if (this.y > ground.y - this.altura && situacaoatual != situacao.perdeu) {
+		this.y = ground.y - this.altura;
+		this.quantidadepulos = 0;
+		this.velocidade = 0;}
+	},
+	
+	//----------------------------Função pulo do personagem-----------------------------------------------------------------
+	
+	pula: function(){
+		if (this.quantidadepulos < maximopulos) {
+			this.velocidade = -this.forcapulo;
+			this.quantidadepulos++;}
+	},
+	
+	//----------------------------Desenho do personagem---------------------------------------------------------------------
+	
+	desenha: function() {
+		spritePersonagem.desenha(this.x, this.y);
+	}},
+	
+	//----------------------------Especificações/variáveis/inserções dos obstáculos------------------------------------------
+	
+	obstaculos = {
+		_obs: [],
+		_cores:["#c68c53"],
+		tempoinsere: 0,
+
+	   insere: function () {
+		   this._obs.push({
+			   x: largura,
+			   largura_obstaculo: 30,
+			   altura_obstaculo: 50,
+			   cor: this._cores
+		   });
+		   this.tempoinsere = 40 + 	Math.floor(35 * Math.random());
+	   },
+
+	   atualiza: function () {
+			if (this.tempoinsere == 0)
+				this.insere();
+			else
+				this.tempoinsere--;
+			
+			for (i = 0, tam = this._obs.length; i < tam; i++){
+			var obs = this._obs[i];
+			
+			obs.x -= velocidade;
+			
+			if (personagem.x < obs.x + obs.largura_obstaculo && personagem.x + personagem.largura >= obs.x && personagem.y + personagem.altura >= ground.y - obs.altura_obstaculo){
+				situacaoatual = situacao.perdeu;}
+			
+			else if(obs.x <= -obs.largura_obstaculo){
+				this._obs.splice(i,1);
+				tam--;
+				i--;}
+			}
+	   },
+	   
+	   limpa: function() {
+			this._obs = [];
+		},
+	   
+	   desenha: function(){
+		   tam = this._obs.length;
+
+		  for (var i=0; i<tam; i++){
+			  var obs = this._obs[i];
+			  ctx.fillStyle = obs.cor;
+			  ctx.fillRect(obs.x, ground.y- obs.altura_obstaculo, obs.largura_obstaculo, obs.altura_obstaculo);
+		  }
+	   }
+   };
+
+		
+	
+
+		
+	
+	//----------------------------Função principal---------------------------------------------------------------------------
+	
+	function main(){
+	altura = window.innerHeight;
+	largura = window.innerWidth;
+	
+	canvas = document.createElement("canvas");
+	canvas.height = altura;
+	canvas.width = largura;
+	
+	ctx = canvas.getContext("2d");
+	document.body.appendChild(canvas);
+	document.addEventListener("mousedown",clique);
+	
+	situacaoatual = situacao.jogar;
+	
+	img = new Image();
+	img.src = "images/imagensss.png";
+	
+	
+	execucao();
+	}
+	
+	//----------------------------Função dos cliques----------------------------------------------------------------------------
+	
+	function clique(event){
+		if (situacaoatual == situacao.jogando)
+			personagem.pula();
+			
+		else if (situacaoatual == situacao.jogar) {
+			situacaoatual = situacao.jogando;
+			}
+		else if (situacaoatual == situacao.perdeu) {
+			situacaoatual = situacao.jogar;
+			}
+	}
+	
+	//----------------------------Função de execução do jogo----------------------------------------------------------------------
+	
+	function execucao(){
+	atualiza();
+	desenha();
+	
+	window.requestAnimationFrame(execucao);
+	}
+	
+	//----------------------------Função de atualização dos frames/personagem/obstáculos------------------------------------------
+	function atualiza(){
+	frames++;
+	personagem.atualiza();
+	
+	if (situacaoatual == situacao.jogando) 
+		obstaculos.atualiza();
+		
+	else if (situacaoatual == situacao.perdeu)
+		obstaculos.limpa();
+		
+		
+	}
+	
+	//----------------------------Função de aplicação gráfica dos elementos--------------------------------------------------------
+	
+	function desenha(){
+	bg.desenha(0, 0);
+	
+	if (situacaoatual == situacao.jogando)
+		obstaculos.desenha();
+		
+	if (situacaoatual == situacao.jogar)
+		jogar.desenha(largura / 2 - jogar.largura / 2, altura / 2 - jogar.altura / 2 );
+		
+	else if (situacaoatual == situacao.perdeu)
+		perdeu.desenha(largura / 2 - perdeu.largura / 2, altura / 2 - perdeu.altura / 2);
+	
+	ground.desenha();
+	personagem.desenha();
+	}
+	
+	//-------------------------------------------------------------------------------------------------------------
+	
+	main()
+	
+	</script>
+	</body>
+</html>
