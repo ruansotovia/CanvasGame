@@ -61,7 +61,7 @@ h3 {
 
 h1 {
 	font-size: 25px;
-	background: -webkit-linear-gradient(rgb(255, 157, 0), #ffc402);
+	background: -webkit-linear-gradient(rgb(255, 157, 0), #ff6702);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 	filter: drop-shadow(5px 5px #000000);
